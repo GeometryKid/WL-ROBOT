@@ -2,6 +2,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+WebSocketsServer websocket = WebSocketsServer(81);
+NetworkHandler networkHandler;
+RobotProtocol rp(20);
+
 // 定义任务句柄
 TaskHandle_t bleCheckTaskHandle = NULL; // 蓝牙检查任务句柄
 TaskHandle_t xboxTaskHandle = NULL; // Xbox任务句柄
@@ -120,8 +124,9 @@ void networkTask(void *pvParameters)
 {
     const TickType_t xFrequency = pdMS_TO_TICKS(50); // 20Hz
     
-    // WiFi初始化
-    WiFi_SetAP();  // 或使用STA模式 set_sta_wifi()
+    // Wifi初始化
+    WiFi_SetAP();
+    // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
     webserver.begin();
     webserver.on("/", HTTP_GET, basicWebCallback);
     websocket.begin();

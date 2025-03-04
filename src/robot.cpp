@@ -23,8 +23,8 @@
 #include "robot.h"
 
 Wrobot wrobot;
-WebServer webserver;
-RobotProtocol rp(20);
+// WebServer实例
+WebServer webserver;                               // server服务器
 
 // 构造函数，初始化RobotProtocol对象
 RobotProtocol::RobotProtocol(uint8_t len)

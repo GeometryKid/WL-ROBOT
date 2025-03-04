@@ -24,10 +24,10 @@
 #pragma once
 
 #include <WiFi.h>
+#include "wifi_config.h"
 #include <WebSocketsServer.h>
 #include <WebServer.h>
 #include <ArduinoJson.h>
-#include <XboxSeriesXControllerESP32_asukiaaa.hpp>
 // 添加互斥锁
 #include <mutex>
 
@@ -47,10 +47,7 @@ typedef struct
 } Wrobot;
 
 extern Wrobot wrobot;
-
-// WebServer实例
-extern WebServer webserver;                               // server服务器
-extern WebSocketsServer websocket = WebSocketsServer(81); // 定义一个webSocket服务器来处理客户发送的消息
+extern WebServer webserver;
 
 // 机器人运动状态枚举
 typedef enum
@@ -124,20 +121,5 @@ private:
   void UART_WriteBuf(void);
   // 检查缓冲区是否刷新
   int checkBufRefresh(void);
-};
-
-class NetworkHandler {
-private:
-    std::mutex wsMutex;
-public:
-    void sendWSData(String& data) {
-        std::lock_guard<std::mutex> lock(wsMutex);
-        websocket.broadcastTXT(data);
-    }
-    
-    void handleEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
-        std::lock_guard<std::mutex> lock(wsMutex);
-        // 事件处理逻辑
-    }
 };
 #endif

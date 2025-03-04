@@ -15,6 +15,7 @@
 #include "robot.h"
 #include "wifi_config.h"
 #include "esp_adc_cal.h"
+#include <XboxSeriesXControllerESP32_asukiaaa.hpp>
 
 // 任务函数声明
 void create_freertos_tasks(); // 创建所有任务
@@ -22,7 +23,19 @@ void networkTask(void *pvParameters);
 void basicWebCallback(void);
 void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
 
-extern NetworkHandler networkHandler;
-extern RobotProtocol rp(20);
+class NetworkHandler {
+private:
+    std::mutex wsMutex;
+public:
+    void sendWSData(String& data) {
+        std::lock_guard<std::mutex> lock(wsMutex);
+        websocket.broadcastTXT(data);
+    }
+    
+    void handleEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+        std::lock_guard<std::mutex> lock(wsMutex);
+        // 事件处理逻辑
+    }
+};
 
 #endif // FREERTOS_TASK_H

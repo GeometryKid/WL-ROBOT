@@ -137,14 +137,6 @@ void setup()
   // freertos任务创建
   create_freertos_tasks();
 
-  // Wifi初始化
-  WiFi_SetAP();
-  // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
-  webserver.begin();
-  webserver.on("/", HTTP_GET, basicWebCallback);
-  websocket.begin();
-  websocket.onEvent(webSocketEventCallback);
-
   // 舵机初始化
   // 舵机有效行程450
   // 左侧舵机[2048+12+50,2048+12+450]

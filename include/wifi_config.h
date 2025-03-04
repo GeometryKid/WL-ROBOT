@@ -23,6 +23,9 @@
 #pragma once
 
 #include <WiFi.h>
+#include <WebSocketsServer.h>
+
+extern WebSocketsServer websocket;
 
 void WiFi_SetAP(void);
 void set_sta_wifi(); // STA模式接入WiFi网络
