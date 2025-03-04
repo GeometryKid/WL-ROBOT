@@ -102,7 +102,7 @@ void xboxTask(void *pvParameters)
         xbox_datas[13] = xboxController.xboxNotif.btnDirLeft;
         xbox_datas[14] = xboxController.xboxNotif.btnDirRight;
         xbox_datas[15] = xboxController.xboxNotif.btnDirDown;
-        // 0~14位为按键bool值
+        // 1~14位为按键bool值
         // 15~28为霍尔值
         xbox_datas[16] = (xboxController.xboxNotif.joyLHori >> 8) & 0xFF;
         xbox_datas[17] = xboxController.xboxNotif.joyLHori & 0xFF;
