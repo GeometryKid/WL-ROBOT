@@ -15,7 +15,7 @@ uint8_t xbox_datas[28] = {0}; // Xbox数据数组
 
 // 定义XBOX控制器实例
 XboxSeriesXControllerESP32_asukiaaa::Core
-    xboxController("28:ea:0b:ff:97:ae"); 
+    xboxController("0c:35:26:56:a0:22"); 
 
 String xbox_string()
 {
@@ -173,7 +173,7 @@ void create_freertos_tasks()
         "BLE Check Task",    // 任务名称
         10000,               // 栈大小
         NULL,                // 任务参数
-        3,                   // 优先级
+        2,                   // 优先级
         &bleCheckTaskHandle, // 任务句柄
         1);                  // 绑定到 Core 1
 

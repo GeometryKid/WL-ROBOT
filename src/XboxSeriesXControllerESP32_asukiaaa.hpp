@@ -2,7 +2,6 @@
 
 #include <NimBLEDevice.h>
 #include <XboxControllerNotificationParser.h>
-
 #include <XboxSeriesXHIDReportBuilder_asukiaaa.hpp>
 
 // #define XBOX_SERIES_X_CONTROLLER_DEBUG_SERIAL Serial

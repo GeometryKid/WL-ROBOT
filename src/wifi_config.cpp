@@ -31,8 +31,8 @@ IPAddress AP_GATEWAY(192, 168, 1, 11);
 IPAddress AP_SUBNET(255, 255, 255, 0);
 
 // 配置STA模式相关参数
-char *sta_ssid = "esp8266";
-char *sta_password = "esp8266a";
+const char *sta_ssid = "esp8266";
+const char *sta_password = "esp8266a";
 
 void WiFi_SetAP(void)
 {
