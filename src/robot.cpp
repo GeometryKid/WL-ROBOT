@@ -278,3 +278,45 @@ void RobotProtocol::parseBasic(StaticJsonDocument<300> &doc)
     // 设置当前缓冲区joy_y的绝对值为获取的joy_y的绝对值
     _now_buf[15] = abs(joy_y);
 }
+
+void XboxControllerHandler::mapDirection(xboxController &xbox) {
+    // 方向键控制基础移动
+    if (xbox.dpadUp()) {
+        wrobot.dir = FORWARD;
+    } else if (xbox.dpadDown()) {
+        wrobot.dir = BACK;
+    } else if (xbox.dpadLeft()) {
+        wrobot.dir = LEFT;
+    } else if (xbox.dpadRight()) {
+        wrobot.dir = RIGHT;
+    } else {
+        wrobot.dir = STOP;
+    }
+
+    // A 键触发跳跃
+    if (xbox.buttonA()) {
+        wrobot.dir = JUMP;
+    }
+}
+
+void XboxControllerHandler::mapJoysticks(XboxController &xbox) {
+    // 左摇杆控制线速度和角速度（范围 [-255, 255] -> [-100, 100]）
+    wrobot.linear = map(xbox.leftStickY(), -255, 255, -100, 100);
+    wrobot.angular = map(xbox.rightStickX(), -255, 255, -100, 100);
+
+    // 右摇杆控制横滚（范围 [-255, 255] -> [-90, 90]）
+    wrobot.roll = map(xbox.rightStickX(), -255, 255, -90, 90);
+}
+
+void XboxControllerHandler::mapTriggers(XboxController &xbox) {
+    // LT/RT 扳机键控制高度（范围 [0, 255] -> [0, 100]）
+    int height = map(xbox.triggerRT(), 0, 255, 0, 100) - map(xbox.triggerLT(), 0, 255, 0, 100);
+    wrobot.height = constrain(height, 0, 100);
+}
+
+void XboxControllerHandler::mapButtons(XboxController &xbox) {
+    // B 键切换稳定模式
+    if (xbox.buttonB()) {
+        wrobot.go = !wrobot.go; // 切换状态
+    }
+}

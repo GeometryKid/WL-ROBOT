@@ -140,6 +140,7 @@ void setup()
 
   // freertos任务创建
   create_freertos_tasks();
+  
   // Wifi初始化
   WiFi_SetAP();
   // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络

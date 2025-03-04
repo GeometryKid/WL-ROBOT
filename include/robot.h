@@ -24,6 +24,7 @@
 
 #include <WiFi.h>
 #include <ArduinoJson.h>
+#include <XboxSeriesXControllerESP32_asukiaaa.hpp>
 
 typedef struct
 {
@@ -71,6 +72,37 @@ public:
   void spinOnce(void);
   // 解析基本数据
   void parseBasic(StaticJsonDocument<300> &doc);
+   // 新增 Xbox 输入解析方法
+  void parseXboxInput() {
+      _now_buf[2] = BASIC;
+
+      // 方向
+      _now_buf[3] = wrobot.dir;
+
+      // 高度
+      _now_buf[4] = wrobot.height;
+
+      // 横滚（符号 + 绝对值）
+      _now_buf[5] = (wrobot.roll >= 0) ? 0 : 1;
+      _now_buf[6] = abs(wrobot.roll);
+
+      // 线速度
+      _now_buf[7] = (wrobot.linear >= 0) ? 0 : 1;
+      _now_buf[8] = abs(wrobot.linear);
+
+      // 角速度
+      _now_buf[9] = (wrobot.angular >= 0) ? 0 : 1;
+      _now_buf[10] = abs(wrobot.angular);
+
+      // 稳定模式
+      _now_buf[11] = wrobot.go ? 1 : 0;
+
+      // 摇杆值（已通过 mapJoysticks 处理）
+      _now_buf[12] = (wrobot.joyx >= 0) ? 0 : 1;
+      _now_buf[13] = abs(wrobot.joyx);
+      _now_buf[14] = (wrobot.joyy >= 0) ? 0 : 1;
+      _now_buf[15] = abs(wrobot.joyy);
+  }
 
 private:
   // 当前缓冲区
@@ -83,4 +115,39 @@ private:
   void UART_WriteBuf(void);
   // 检查缓冲区是否刷新
   int checkBufRefresh(void);
+};
+
+class XboxControllerHandler {
+public:
+    void setup() {
+        // 初始化 Xbox 控制器
+        Xbox.begin();
+    }
+
+    void update(RobotProtocol &protocol) {
+        // 轮询手柄状态
+        Xbox.refresh();
+
+        // 若手柄未连接则退出
+        if (!Xbox.isConnected()) return;
+
+        // 将 Xbox 输入映射到 wrobot 变量
+        mapDirection(Xbox);
+        mapJoysticks(Xbox);
+        mapTriggers(Xbox);
+        mapButtons(Xbox);
+
+        // 更新协议缓冲区
+        protocol.parseXboxInput(); // 需新增方法
+    }
+
+private:
+    // 将 Xbox 控制器的方向映射到 wrobot 变量
+    void mapDirection(XboxController &xbox);
+    // 将 Xbox 控制器的摇杆映射到 wrobot 变量
+    void mapJoysticks(XboxController &xbox);
+    // 将 Xbox 控制器的触发器映射到 wrobot 变量
+    void mapTriggers(XboxController &xbox);
+    // 将 Xbox 控制器的按钮映射到 wrobot 变量
+    void mapButtons(XboxController &xbox);
 };
