@@ -23,6 +23,8 @@
 #pragma once
 
 #include <WiFi.h>
+#include <WebSocketsServer.h>
+#include <WebServer.h>
 #include <ArduinoJson.h>
 #include <XboxSeriesXControllerESP32_asukiaaa.hpp>
 // 添加互斥锁
@@ -44,6 +46,7 @@ typedef struct
 } Wrobot;
 
 extern Wrobot wrobot;
+extern WebSocketsServer websocket = WebSocketsServer(81);
 extern NetworkHandler networkHandler;
 
 // 机器人运动状态枚举
@@ -124,7 +127,7 @@ class NetworkHandler {
 private:
     std::mutex wsMutex;
 public:
-    void sendWSData(const String& data) {
+    void sendWSData(String& data) {
         std::lock_guard<std::mutex> lock(wsMutex);
         websocket.broadcastTXT(data);
     }
