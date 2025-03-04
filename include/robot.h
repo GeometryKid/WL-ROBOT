@@ -25,6 +25,8 @@
 #include <WiFi.h>
 #include <ArduinoJson.h>
 #include <XboxSeriesXControllerESP32_asukiaaa.hpp>
+// 添加互斥锁
+#include <mutex>
 
 typedef struct
 {
@@ -42,6 +44,7 @@ typedef struct
 } Wrobot;
 
 extern Wrobot wrobot;
+extern NetworkHandler networkHandler;
 
 // 机器人运动状态枚举
 typedef enum
@@ -117,37 +120,17 @@ private:
   int checkBufRefresh(void);
 };
 
-class XboxControllerHandler {
-public:
-    void setup() {
-        // 初始化 Xbox 控制器
-        Xbox.begin();
-    }
-
-    void update(RobotProtocol &protocol) {
-        // 轮询手柄状态
-        Xbox.refresh();
-
-        // 若手柄未连接则退出
-        if (!Xbox.isConnected()) return;
-
-        // 将 Xbox 输入映射到 wrobot 变量
-        mapDirection(Xbox);
-        mapJoysticks(Xbox);
-        mapTriggers(Xbox);
-        mapButtons(Xbox);
-
-        // 更新协议缓冲区
-        protocol.parseXboxInput(); // 需新增方法
-    }
-
+class NetworkHandler {
 private:
-    // 将 Xbox 控制器的方向映射到 wrobot 变量
-    void mapDirection(XboxController &xbox);
-    // 将 Xbox 控制器的摇杆映射到 wrobot 变量
-    void mapJoysticks(XboxController &xbox);
-    // 将 Xbox 控制器的触发器映射到 wrobot 变量
-    void mapTriggers(XboxController &xbox);
-    // 将 Xbox 控制器的按钮映射到 wrobot 变量
-    void mapButtons(XboxController &xbox);
+    std::mutex wsMutex;
+public:
+    void sendWSData(const String& data) {
+        std::lock_guard<std::mutex> lock(wsMutex);
+        websocket.broadcastTXT(data);
+    }
+    
+    void handleEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
+        std::lock_guard<std::mutex> lock(wsMutex);
+        // 事件处理逻辑
+    }
 };

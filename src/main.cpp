@@ -71,10 +71,6 @@ void lpfRoll(char *cmd) { command.lpf(&lpf_roll, cmd); }
 
 // void Stabtest_zeropoint(char* cmd) { command.pid(&test_zeropoint, cmd); }
 
-// WebServer实例
-WebServer webserver;                               // server服务器
-WebSocketsServer websocket = WebSocketsServer(81); // 定义一个webSocket服务器来处理客户发送的消息
-RobotProtocol rp(20);
 int joystick_value[2];
 
 // STS舵机实例
@@ -140,7 +136,7 @@ void setup()
 
   // freertos任务创建
   create_freertos_tasks();
-  
+
   // Wifi初始化
   WiFi_SetAP();
   // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
@@ -245,7 +241,6 @@ void setup()
 void loop()
 {
   bat_check();        // 电压检测
-  web_loop();         // Web数据更新
   mpu6050.update();   // IMU数据更新
   lqr_balance_loop(); // lqr自平衡控制
   yaw_loop();         // yaw轴转向控制
@@ -470,14 +465,6 @@ void yaw_loop()
   YAW_output = yaw_angle_control + yaw_gyro_control;
 }
 
-// Web数据更新
-void web_loop()
-{
-  webserver.handleClient();
-  websocket.loop();
-  rp.spinOnce(); // 更新web端回传的控制信息
-}
-
 // yaw轴角度累加函数
 void yaw_angle_addup()
 {
@@ -512,35 +499,6 @@ void yaw_angle_addup()
 
   YAW_angle_total = YAW_angle_total + yaw_addup_angle;
   YAW_angle_last = YAW_angle;
-}
-
-void basicWebCallback(void)
-{
-  webserver.send(300, "text/html", basic_web);
-}
-
-// 定义一个WebSocket事件回调函数
-void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-{
-  // 如果事件类型是文本类型
-  if (type == WStype_TEXT)
-  {
-    // 将payload转换为字符串
-    String payload_str = String((char *)payload);
-    // 创建一个JsonDocument对象
-    StaticJsonDocument<300> doc;
-    // 将字符串转换为Json对象
-    DeserializationError error = deserializeJson(doc, payload_str);
-
-    // 获取Json对象中的mode字段
-    String mode_str = doc["mode"];
-    // 如果mode字段为basic
-    if (mode_str == "basic")
-    {
-      // 调用parseBasic函数解析Json对象
-      rp.parseBasic(doc);
-    }
-  }
 }
 
 // 电压检测初始化

@@ -59,7 +59,7 @@ void bleCheckTask(void *pvParameters)
             {
                 Serial.print(xbox_string());
                 //  demoVibration();
-                //   demoVibration_2();
+                //  demoVibration_2();
             }
         }
         else
@@ -116,6 +116,37 @@ void xboxTask(void *pvParameters)
     }
 }
 
+void networkTask(void *pvParameters)
+{
+    const TickType_t xFrequency = pdMS_TO_TICKS(50); // 20Hz
+    
+    // WiFi初始化
+    WiFi_SetAP();  // 或使用STA模式 set_sta_wifi()
+    webserver.begin();
+    webserver.on("/", HTTP_GET, basicWebCallback);
+    websocket.begin();
+    websocket.onEvent(webSocketEventCallback);
+
+    for (;;) {
+        
+        if (WiFi.status() != WL_CONNECTED && WiFi.getMode() == WIFI_STA) 
+        {
+            Serial.println("WiFi断开，尝试重连...");
+            WiFi.reconnect();
+        }
+        vTaskDelay(pdMS_TO_TICKS(5000));
+        
+        // 处理Web请求和WebSocket事件
+        webserver.handleClient();
+        websocket.loop();
+        
+        // 协议数据处理
+        rp.spinOnce();
+        
+        vTaskDelay(xFrequency);
+    }
+}
+
 // 定义底盘控制任务函数
 void ChassisTask(void *pvParameters)
 {
@@ -147,7 +178,7 @@ void create_freertos_tasks()
         "Xbox Task",     // 任务名称
         10000,           // 栈大小
         NULL,            // 任务参数
-        4,               // 优先级
+        2,               // 优先级
         &xboxTaskHandle, // 任务句柄
         0);              // 绑定到 Core 0
     
@@ -157,9 +188,30 @@ void create_freertos_tasks()
         "Chassis Task",     // 任务名称
         10000,              // 栈大小
         NULL,               // 任务参数
-        5,                  // 优先级
+        1,                  // 优先级
         &ChassisTaskHandle, // 任务句柄
         0);                 // 绑定到 Core 0
-
+    
+    // 创建 Web 数据处理任务，绑定到 Core 1
+    xTaskCreatePinnedToCore(
+        networkTask,        // 任务函数
+        "Network Task",     // 任务名称
+        15000,              // 需要较大栈空间
+        NULL,               // 任务参数
+        2,                  // 优先级
+        NULL,               // 任务句柄 
+        1                   // Core 1
+    );
     xboxController.begin();
+}
+
+void basicWebCallback(void)
+{
+  webserver.send(300, "text/html", basic_web);
+}
+
+// 定义一个WebSocket事件回调函数
+void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+{
+  networkHandler.handleEvent(num, type, payload, length);
 }
