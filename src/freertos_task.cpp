@@ -5,7 +5,7 @@
 // 定义任务句柄
 TaskHandle_t bleCheckTaskHandle = NULL; // 蓝牙检查任务句柄
 TaskHandle_t xboxTaskHandle = NULL; // Xbox任务句柄
-TaskHandle_t ChassisTaskHandle = NULL;
+// TaskHandle_t ChassisTaskHandle = NULL;
 
 uint8_t xbox_datas[28] = {0}; // Xbox数据数组
 
@@ -148,16 +148,16 @@ void networkTask(void *pvParameters)
 }
 
 // 定义底盘控制任务函数
-void ChassisTask(void *pvParameters)
-{
-    const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz = 10ms
+// void ChassisTask(void *pvParameters)
+// {
+//     const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz = 10ms
 
-    for (;;)
-    {
-        // 控制机器人底盘运动的代码
-        vTaskDelay(xFrequency); // 使用相对延时，延时 10ms
-    }
-}
+//     for (;;)
+//     {
+//         // 控制机器人底盘运动的代码
+//         vTaskDelay(xFrequency); // 使用相对延时，延时 10ms
+//     }
+// }
 
 // 创建任务函数
 void create_freertos_tasks()
@@ -183,14 +183,14 @@ void create_freertos_tasks()
         0);              // 绑定到 Core 0
     
     // 创建底盘控制任务，绑定到 Core 0
-    xTaskCreatePinnedToCore(
-        ChassisTask,        // 任务函数
-        "Chassis Task",     // 任务名称
-        10000,              // 栈大小
-        NULL,               // 任务参数
-        1,                  // 优先级
-        &ChassisTaskHandle, // 任务句柄
-        0);                 // 绑定到 Core 0
+    // xTaskCreatePinnedToCore(
+    //     ChassisTask,        // 任务函数
+    //     "Chassis Task",     // 任务名称
+    //     10000,              // 栈大小
+    //     NULL,               // 任务参数
+    //     1,                  // 优先级
+    //     &ChassisTaskHandle, // 任务句柄
+    //     0);                 // 绑定到 Core 0
     
     // 创建 Web 数据处理任务，绑定到 Core 1
     xTaskCreatePinnedToCore(

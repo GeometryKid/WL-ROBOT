@@ -19,7 +19,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 // -----------------------------------------------------------------------------
-
+#ifndef ROBOT_H 
+#define ROBOT_H
 #pragma once
 
 #include <WiFi.h>
@@ -46,8 +47,10 @@ typedef struct
 } Wrobot;
 
 extern Wrobot wrobot;
-extern WebSocketsServer websocket = WebSocketsServer(81);
-extern NetworkHandler networkHandler;
+
+// WebServer实例
+extern WebServer webserver;                               // server服务器
+extern WebSocketsServer websocket = WebSocketsServer(81); // 定义一个webSocket服务器来处理客户发送的消息
 
 // 机器人运动状态枚举
 typedef enum
@@ -137,3 +140,4 @@ public:
         // 事件处理逻辑
     }
 };
+#endif
