@@ -7,14 +7,8 @@
 #include <SimpleFOC.h>
 #include <Arduino.h>
 #include "freertos_task.h"
+#include "ChassisTask.h"
 
 void adc_calibration_init();
-void bat_check();
-void web_loop();
-void lqr_balance_loop();
-void yaw_loop();
-void leg_loop();
-void jump_loop();
-void yaw_angle_addup();
 
 #endif

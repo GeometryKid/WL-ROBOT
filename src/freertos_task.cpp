@@ -3,13 +3,12 @@
 #include "freertos/task.h"
 
 WebSocketsServer websocket = WebSocketsServer(81);
-NetworkHandler networkHandler;
 RobotProtocol rp(20);
 
 // 定义任务句柄
 TaskHandle_t bleCheckTaskHandle = NULL; // 蓝牙检查任务句柄
 TaskHandle_t xboxTaskHandle = NULL; // Xbox任务句柄
-// TaskHandle_t ChassisTaskHandle = NULL;
+TaskHandle_t ChassisTaskHandle = NULL;
 
 uint8_t xbox_datas[28] = {0}; // Xbox数据数组
 
@@ -145,7 +144,7 @@ void networkTask(void *pvParameters)
         webserver.handleClient();
         websocket.loop();
         
-        // 协议数据处理
+        // 更新web端回传的控制信息
         rp.spinOnce();
         
         vTaskDelay(xFrequency);
@@ -153,16 +152,17 @@ void networkTask(void *pvParameters)
 }
 
 // 定义底盘控制任务函数
-// void ChassisTask(void *pvParameters)
-// {
-//     const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz = 10ms
+void ChassisTask(void *pvParameters)
+{
+    const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz = 10ms
 
-//     for (;;)
-//     {
-//         // 控制机器人底盘运动的代码
-//         vTaskDelay(xFrequency); // 使用相对延时，延时 10ms
-//     }
-// }
+    for (;;)
+    {
+        // 控制机器人底盘运动的代码
+        Chassis_loop();
+        vTaskDelay(xFrequency); // 使用相对延时，延时 10ms
+    }
+}
 
 // 创建任务函数
 void create_freertos_tasks()
@@ -173,7 +173,7 @@ void create_freertos_tasks()
         "BLE Check Task",    // 任务名称
         10000,               // 栈大小
         NULL,                // 任务参数
-        2,                   // 优先级
+        1,                   // 优先级
         &bleCheckTaskHandle, // 任务句柄
         1);                  // 绑定到 Core 1
 
@@ -183,19 +183,19 @@ void create_freertos_tasks()
         "Xbox Task",     // 任务名称
         10000,           // 栈大小
         NULL,            // 任务参数
-        2,               // 优先级
+        1,               // 优先级
         &xboxTaskHandle, // 任务句柄
         0);              // 绑定到 Core 0
     
     // 创建底盘控制任务，绑定到 Core 0
-    // xTaskCreatePinnedToCore(
-    //     ChassisTask,        // 任务函数
-    //     "Chassis Task",     // 任务名称
-    //     10000,              // 栈大小
-    //     NULL,               // 任务参数
-    //     1,                  // 优先级
-    //     &ChassisTaskHandle, // 任务句柄
-    //     0);                 // 绑定到 Core 0
+    xTaskCreatePinnedToCore(
+        ChassisTask,        // 任务函数
+        "Chassis Task",     // 任务名称
+        10000,              // 栈大小
+        NULL,               // 任务参数
+        2,                  // 优先级
+        &ChassisTaskHandle, // 任务句柄
+        0);                 // 绑定到 Core 0
     
     // 创建 Web 数据处理任务，绑定到 Core 1
     xTaskCreatePinnedToCore(
@@ -218,5 +218,16 @@ void basicWebCallback(void)
 // 定义一个WebSocket事件回调函数
 void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 {
-  networkHandler.handleEvent(num, type, payload, length);
+  if (type == WStype_TEXT)
+  {
+    String payload_str = String((char *)payload);
+    StaticJsonDocument<300> doc;
+    DeserializationError error = deserializeJson(doc, payload_str);
+
+    String mode_str = doc["mode"];
+    if (mode_str == "basic")
+    {
+      rp.parseBasic(doc);
+    }
+  }
 }
