@@ -25,6 +25,8 @@
 Wrobot wrobot;
 // WebServer实例
 WebServer webserver;                               // server服务器
+WebSocketsServer websocket = WebSocketsServer(81);
+RobotProtocol rp(20);
 
 // 构造函数，初始化RobotProtocol对象
 RobotProtocol::RobotProtocol(uint8_t len)
@@ -281,3 +283,66 @@ void RobotProtocol::parseBasic(StaticJsonDocument<300> &doc)
     // 设置当前缓冲区joy_y的绝对值为获取的joy_y的绝对值
     _now_buf[15] = abs(joy_y);
 }
+
+void basicWebCallback(void)
+{
+  webserver.send(300, "text/html", basic_web);
+}
+
+// 定义一个WebSocket事件回调函数
+void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
+{
+  if (type == WStype_TEXT)
+  {
+    String payload_str = String((char *)payload);
+    StaticJsonDocument<300> doc;
+    DeserializationError error = deserializeJson(doc, payload_str);
+
+    String mode_str = doc["mode"];
+    if (mode_str == "basic")
+    {
+      rp.parseBasic(doc);
+    }
+  }
+}
+
+static void AppServerTask(void *pvParameters)
+{
+    // Wifi初始化
+    WiFi_SetAP();
+    // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
+    webserver.begin();
+    webserver.on("/", HTTP_GET, basicWebCallback);
+    websocket.begin();
+    websocket.onEvent(webSocketEventCallback);
+    for (;;) {
+        if (WiFi.status() != WL_CONNECTED && WiFi.getMode() == WIFI_STA) 
+        {
+            Serial.println("WiFi断开，尝试重连...");
+            WiFi.reconnect();
+        }
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+}
+
+static void CarBrakeTask(void *pvParameters)
+{
+    for (;;)
+    {
+        // 处理Web请求和WebSocket事件
+        webserver.handleClient();
+        websocket.loop();
+        
+        // 更新web端回传的控制信息
+        rp.spinOnce();
+        
+        vTaskDelay(10);
+    }
+};
+
+void AppTaskInit::startTask()
+{
+    xTaskCreatePinnedToCore(AppServerTask, "App Sever Task", 6144, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(CarBrakeTask, "Brake Car Task", 2048, NULL, 1, NULL, 0);
+};
+AppTaskInit APP;

@@ -2,13 +2,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-WebSocketsServer websocket = WebSocketsServer(81);
-RobotProtocol rp(20);
-
 // 定义任务句柄
 TaskHandle_t bleCheckTaskHandle = NULL; // 蓝牙检查任务句柄
 TaskHandle_t xboxTaskHandle = NULL; // Xbox任务句柄
-TaskHandle_t ChassisTaskHandle = NULL;
 
 uint8_t xbox_datas[28] = {0}; // Xbox数据数组
 
@@ -119,51 +115,6 @@ void xboxTask(void *pvParameters)
     }
 }
 
-void networkTask(void *pvParameters)
-{
-    const TickType_t xFrequency = pdMS_TO_TICKS(50); // 20Hz
-    
-    // Wifi初始化
-    WiFi_SetAP();
-    // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
-    webserver.begin();
-    webserver.on("/", HTTP_GET, basicWebCallback);
-    websocket.begin();
-    websocket.onEvent(webSocketEventCallback);
-
-    for (;;) {
-        
-        if (WiFi.status() != WL_CONNECTED && WiFi.getMode() == WIFI_STA) 
-        {
-            Serial.println("WiFi断开，尝试重连...");
-            WiFi.reconnect();
-        }
-        vTaskDelay(pdMS_TO_TICKS(5000));
-        
-        // 处理Web请求和WebSocket事件
-        webserver.handleClient();
-        websocket.loop();
-        
-        // 更新web端回传的控制信息
-        rp.spinOnce();
-        
-        vTaskDelay(xFrequency);
-    }
-}
-
-// 定义底盘控制任务函数
-void ChassisTask(void *pvParameters)
-{
-    const TickType_t xFrequency = pdMS_TO_TICKS(10); // 100Hz = 10ms
-
-    for (;;)
-    {
-        // 控制机器人底盘运动的代码
-        Chassis_loop();
-        vTaskDelay(xFrequency); // 使用相对延时，延时 10ms
-    }
-}
-
 // 创建任务函数
 void create_FreertosTasks()
 {
@@ -186,48 +137,5 @@ void create_FreertosTasks()
         1,               // 优先级
         &xboxTaskHandle, // 任务句柄
         1);              // 绑定到 Core 1
-    
-    // 创建底盘控制任务，绑定到 Core 0
-    xTaskCreatePinnedToCore(
-        ChassisTask,        // 任务函数
-        "Chassis Task",     // 任务名称
-        10000,              // 栈大小
-        NULL,               // 任务参数
-        2,                  // 优先级
-        &ChassisTaskHandle, // 任务句柄
-        0);                 // 绑定到 Core 0
-    
-    // 创建 Web 数据处理任务，绑定到 Core 0
-    xTaskCreatePinnedToCore(
-        networkTask,        // 任务函数
-        "Network Task",     // 任务名称
-        15000,              // 需要较大栈空间
-        NULL,               // 任务参数
-        2,                  // 优先级
-        NULL,               // 任务句柄 
-        0                   // Core 0
-    );
     xboxController.begin();
-}
-
-void basicWebCallback(void)
-{
-  webserver.send(300, "text/html", basic_web);
-}
-
-// 定义一个WebSocket事件回调函数
-void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
-{
-  if (type == WStype_TEXT)
-  {
-    String payload_str = String((char *)payload);
-    StaticJsonDocument<300> doc;
-    DeserializationError error = deserializeJson(doc, payload_str);
-
-    String mode_str = doc["mode"];
-    if (mode_str == "basic")
-    {
-      rp.parseBasic(doc);
-    }
-  }
 }

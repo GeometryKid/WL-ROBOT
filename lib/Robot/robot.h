@@ -23,13 +23,14 @@
 #define ROBOT_H
 #pragma once
 
-#include <WiFi.h>
-#include "wifi_config.h"
+// wifi控制数据传输头文件
 #include <WebSocketsServer.h>
-#include <WebServer.h>
 #include <ArduinoJson.h>
-// 添加互斥锁
-#include <mutex>
+#include <WebServer.h>
+#include <WiFi.h>
+#include <FS.h>
+#include "basic_web.h"
+#include "wifi_config.h"
 
 typedef struct
 {
@@ -122,4 +123,14 @@ private:
   // 检查缓冲区是否刷新
   int checkBufRefresh(void);
 };
+class AppTaskInit
+{
+  public:
+    void startTask();
+};
+
+extern AppTaskInit APP;
+void basicWebCallback(void);
+void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length);
+
 #endif

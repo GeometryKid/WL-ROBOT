@@ -7,7 +7,6 @@
 #include <SimpleFOC.h>
 #include <Arduino.h>
 #include "robot.h"
-#include "esp_adc_cal.h"
 
 extern SMS_STS sms_sts;
 extern TwoWire I2Cone;
@@ -39,15 +38,6 @@ extern s16 Position[2];
 extern u16 Speed[2];
 extern byte ACC[2];
 
-static esp_adc_cal_characteristics_t adc_chars;
-static const adc1_channel_t channel = ADC1_CHANNEL_7;
-static const adc_bits_width_t width = ADC_WIDTH_BIT_12;
-static const adc_atten_t atten = ADC_ATTEN_DB_11;
-static const adc_unit_t unit = ADC_UNIT_1;
-
-// 电量显示LED
-#define LED_BAT 13
-
 class ChassisTask
 {
   public:
@@ -57,7 +47,6 @@ class ChassisTask
 
 extern ChassisTask WLRobot;
 
-void bat_check();
 void lqr_balance_loop();
 void yaw_loop();
 void leg_loop();
@@ -75,7 +64,6 @@ void StabZeropoint(char *cmd);
 void lpfZeropoint(char *cmd);
 void StabRollAngle(char *cmd);
 void lpfRoll(char *cmd);
-void adc_calibration_init();
 
 // void Stabtest_zeropoint(char* cmd) { command.pid(&test_zeropoint, cmd); }
 

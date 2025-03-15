@@ -78,9 +78,6 @@ s16 Position[2];
 u16 Speed[2];
 byte ACC[2];
 
-// 电压检测
-uint16_t bat_check_num = 0;
-int BAT_PIN = 35; // select the input pin for the ADC
 void ChassisTask::startTask()
 {
   Serial.begin(115200);   // 通讯串口
@@ -102,14 +99,7 @@ void ChassisTask::startTask()
   // 舵机(ID1/ID2)以最高速度V=2400步/秒，加速度A=50(50*100步/秒^2)，运行至各自的Position位置
   sms_sts.SyncWritePosEx(ID, 2, Position, Speed, ACC);
 
-  // 电压检测
-  adc_calibration_init();
-  adc1_config_width(width);
-  adc1_config_channel_atten(channel, atten);
-  esp_adc_cal_characterize(unit, atten, width, 0, &adc_chars);
-
-  // 电量显示LED
-  pinMode(LED_BAT, OUTPUT);
+ 
 
   // 编码器设置
   I2Cone.begin(19, 18, 400000UL);
@@ -180,7 +170,6 @@ void ChassisTask::startTask()
 }
 void ChassisTask::Chassis_loop()
 {
-  bat_check();        // 电压检测
   mpu6050.update();   // IMU数据更新
   lqr_balance_loop(); // lqr自平衡控制
   yaw_loop();         // yaw轴转向控制
@@ -230,6 +219,7 @@ void ChassisTask::Chassis_loop()
 
   command.run();
 }
+ChassisTask WLRobot;
 
 // lqr自平衡控制
 void lqr_balance_loop()
@@ -443,29 +433,7 @@ void yaw_angle_addup()
 
 
 
-// 电压检测
-void bat_check()
-{
-  if (bat_check_num > 1000)
-  {
-    // 电压读取
-    uint32_t sum = 0;
-    sum = analogRead(BAT_PIN);
-    uint32_t voltage = esp_adc_cal_raw_to_voltage(sum, &adc_chars);
-    double battery = (voltage * 3.97) / 1000.0;
 
-    // Serial.println(battery);
-    // 电量显示
-    if (battery > 7.8)
-      digitalWrite(LED_BAT, HIGH);
-    else
-      digitalWrite(LED_BAT, LOW);
-
-    bat_check_num = 0;
-  }
-  else
-    bat_check_num++;
-}
 
 void StabAngle(char *cmd) { command.pid(&pid_angle, cmd); }
 void StabGyro(char *cmd) { command.pid(&pid_gyro, cmd); }

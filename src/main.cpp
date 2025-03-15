@@ -23,12 +23,15 @@
 // 转成PlatformIO工程创建
 #include "ChassisTask.h"
 #include "FreertosTask.h"
+#include "Battery.h"
+#include "robot.h"
 
 void setup()
 {
   // freertos任务创建
   create_FreertosTasks();
-
+  bat.startTask();
+  APP.startTask();            // 开手机遥控器APP任务
   WLRobot.startTask();
 
 }
@@ -36,26 +39,4 @@ void setup()
 void loop()
 {
   WLRobot.Chassis_loop();
-}
-
-// 电压检测初始化
-void adc_calibration_init()
-{
-  if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_TP) == ESP_OK)
-  {
-    printf("eFuse Two Point: Supported\n");
-  }
-  else
-  {
-    printf("eFuse Two Point: NOT supported\n");
-  }
-  // Check Vref is burned into eFuse
-  if (esp_adc_cal_check_efuse(ESP_ADC_CAL_VAL_EFUSE_VREF) == ESP_OK)
-  {
-    printf("eFuse Vref: Supported\n");
-  }
-  else
-  {
-    printf("eFuse Vref: NOT supported\n");
-  }
 }
