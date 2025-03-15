@@ -48,7 +48,15 @@ static const adc_unit_t unit = ADC_UNIT_1;
 // 电量显示LED
 #define LED_BAT 13
 
-void Chassis_loop();
+class ChassisTask
+{
+  public:
+    void startTask();
+    void Chassis_loop();
+};
+
+extern ChassisTask WLRobot;
+
 void bat_check();
 void lqr_balance_loop();
 void yaw_loop();
@@ -67,6 +75,7 @@ void StabZeropoint(char *cmd);
 void lpfZeropoint(char *cmd);
 void StabRollAngle(char *cmd);
 void lpfRoll(char *cmd);
+void adc_calibration_init();
 
 // void Stabtest_zeropoint(char* cmd) { command.pid(&test_zeropoint, cmd); }
 

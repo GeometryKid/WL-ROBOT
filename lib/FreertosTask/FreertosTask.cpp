@@ -1,4 +1,4 @@
-#include "freertos_task.h"
+#include "FreertosTask.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -165,7 +165,7 @@ void ChassisTask(void *pvParameters)
 }
 
 // 创建任务函数
-void create_freertos_tasks()
+void create_FreertosTasks()
 {
     // 创建 BLE 连接检查任务，绑定到 Core 1
     xTaskCreatePinnedToCore(
@@ -177,7 +177,7 @@ void create_freertos_tasks()
         &bleCheckTaskHandle, // 任务句柄
         1);                  // 绑定到 Core 1
 
-    // 创建 Xbox 数据处理任务，绑定到 Core 0
+    // 创建 Xbox 数据处理任务，绑定到 Core 1
     xTaskCreatePinnedToCore(
         xboxTask,        // 任务函数
         "Xbox Task",     // 任务名称
@@ -185,7 +185,7 @@ void create_freertos_tasks()
         NULL,            // 任务参数
         1,               // 优先级
         &xboxTaskHandle, // 任务句柄
-        0);              // 绑定到 Core 0
+        1);              // 绑定到 Core 1
     
     // 创建底盘控制任务，绑定到 Core 0
     xTaskCreatePinnedToCore(
@@ -197,7 +197,7 @@ void create_freertos_tasks()
         &ChassisTaskHandle, // 任务句柄
         0);                 // 绑定到 Core 0
     
-    // 创建 Web 数据处理任务，绑定到 Core 1
+    // 创建 Web 数据处理任务，绑定到 Core 0
     xTaskCreatePinnedToCore(
         networkTask,        // 任务函数
         "Network Task",     // 任务名称
@@ -205,7 +205,7 @@ void create_freertos_tasks()
         NULL,               // 任务参数
         2,                  // 优先级
         NULL,               // 任务句柄 
-        1                   // Core 1
+        0                   // Core 0
     );
     xboxController.begin();
 }
