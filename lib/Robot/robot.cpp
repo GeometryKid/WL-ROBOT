@@ -288,7 +288,31 @@ void basicWebCallback(void)
 {
   webserver.send(300, "text/html", basic_web);
 }
+static void CarBrakeTask(void *pvParameters)
+{
+    // Wifi初始化
+    WiFi_SetAP();
+    // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
+    webserver.begin();
+    webserver.on("/", HTTP_GET, basicWebCallback);
+    websocket.begin();
+    websocket.onEvent(webSocketEventCallback);
+    for (;;) 
+    {
+        // 处理Web请求和WebSocket事件
+        webserver.handleClient();
+        websocket.loop();
+        // 更新web端回传的控制信息
+        rp.spinOnce();
+        vTaskDelay(10);
+    }
+}
 
+void AppTaskInit::startTask()
+{
+    xTaskCreatePinnedToCore(CarBrakeTask, "Brake Car Task", 10000, NULL, 1, NULL, 0);
+};
+AppTaskInit APP;
 // 定义一个WebSocket事件回调函数
 void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t length)
 {
@@ -305,44 +329,3 @@ void webSocketEventCallback(uint8_t num, WStype_t type, uint8_t *payload, size_t
     }
   }
 }
-
-static void AppServerTask(void *pvParameters)
-{
-    // Wifi初始化
-    WiFi_SetAP();
-    // set_sta_wifi();      // ESP-01S STA模式接入WiFi网络
-    webserver.begin();
-    webserver.on("/", HTTP_GET, basicWebCallback);
-    websocket.begin();
-    websocket.onEvent(webSocketEventCallback);
-    for (;;) {
-        if (WiFi.status() != WL_CONNECTED && WiFi.getMode() == WIFI_STA) 
-        {
-            Serial.println("WiFi断开，尝试重连...");
-            WiFi.reconnect();
-        }
-        vTaskDelay(pdMS_TO_TICKS(5000));
-    }
-}
-
-static void CarBrakeTask(void *pvParameters)
-{
-    for (;;)
-    {
-        // 处理Web请求和WebSocket事件
-        webserver.handleClient();
-        websocket.loop();
-        
-        // 更新web端回传的控制信息
-        rp.spinOnce();
-        
-        vTaskDelay(10);
-    }
-};
-
-void AppTaskInit::startTask()
-{
-    xTaskCreatePinnedToCore(AppServerTask, "App Sever Task", 6144, NULL, 1, NULL, 0);
-    xTaskCreatePinnedToCore(CarBrakeTask, "Brake Car Task", 2048, NULL, 1, NULL, 0);
-};
-AppTaskInit APP;

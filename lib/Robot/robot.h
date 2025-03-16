@@ -123,6 +123,7 @@ private:
   // 检查缓冲区是否刷新
   int checkBufRefresh(void);
 };
+extern RobotProtocol rp;
 class AppTaskInit
 {
   public:

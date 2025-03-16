@@ -2,10 +2,6 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-// 定义任务句柄
-TaskHandle_t bleCheckTaskHandle = NULL; // 蓝牙检查任务句柄
-TaskHandle_t xboxTaskHandle = NULL; // Xbox任务句柄
-
 uint8_t xbox_datas[28] = {0}; // Xbox数据数组
 
 // 定义XBOX控制器实例
@@ -118,24 +114,24 @@ void xboxTask(void *pvParameters)
 // 创建任务函数
 void XboxControlTask()
 {
-    // 创建 BLE 连接检查任务，绑定到 Core 1
+    // 创建 BLE 连接检查任务，绑定到 Core 0
     xTaskCreatePinnedToCore(
         bleCheckTask,        // 任务函数
         "BLE Check Task",    // 任务名称
         10000,               // 栈大小
         NULL,                // 任务参数
-        5,                   // 优先级
-        &bleCheckTaskHandle, // 任务句柄
-        1);                  // 绑定到 Core 1
+        3,                   // 优先级
+        NULL,                // 任务句柄
+        0);                  // 绑定到 Core 0
 
-    // 创建 Xbox 数据处理任务，绑定到 Core 1
+    // 创建 Xbox 数据处理任务，绑定到 Core 0
     xTaskCreatePinnedToCore(
         xboxTask,        // 任务函数
         "Xbox Task",     // 任务名称
         10000,           // 栈大小
         NULL,            // 任务参数
-        5,               // 优先级
-        &xboxTaskHandle, // 任务句柄
-        1);              // 绑定到 Core 1
+        1,               // 优先级
+        NULL,            // 任务句柄
+        0);              // 绑定到 Core 0
     xboxController.begin();
 }
