@@ -28,7 +28,7 @@
 
 void setup()
 {
-  // XboxControlTask();
+  XboxControlTask();
   bat.startTask();
   APP.startTask();            // 开手机遥控器APP任务
   WLRobot.startTask();
