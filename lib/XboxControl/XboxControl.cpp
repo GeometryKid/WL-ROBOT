@@ -1,4 +1,4 @@
-#include "FreertosTask.h"
+#include "XboxControl.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -116,7 +116,7 @@ void xboxTask(void *pvParameters)
 }
 
 // 创建任务函数
-void create_FreertosTasks()
+void XboxControlTask()
 {
     // 创建 BLE 连接检查任务，绑定到 Core 1
     xTaskCreatePinnedToCore(
@@ -124,7 +124,7 @@ void create_FreertosTasks()
         "BLE Check Task",    // 任务名称
         10000,               // 栈大小
         NULL,                // 任务参数
-        1,                   // 优先级
+        5,                   // 优先级
         &bleCheckTaskHandle, // 任务句柄
         1);                  // 绑定到 Core 1
 
@@ -134,7 +134,7 @@ void create_FreertosTasks()
         "Xbox Task",     // 任务名称
         10000,           // 栈大小
         NULL,            // 任务参数
-        1,               // 优先级
+        5,               // 优先级
         &xboxTaskHandle, // 任务句柄
         1);              // 绑定到 Core 1
     xboxController.begin();

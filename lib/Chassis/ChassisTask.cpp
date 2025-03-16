@@ -53,7 +53,7 @@ float gyro_control = 0;
 float speed_control = 0;
 float distance_control = 0;
 float LQR_u = 0;
-float angle_zeropoint = 3.4;  // 3.4
+float angle_zeropoint = -1.3;  // -1.3 | 3.4
 float distance_zeropoint = -256.0; // 轮部位移零点偏置（-256为一个不可能的位移值，将其作为未刷新的标志）
 
 // YAW轴控制数据

@@ -22,14 +22,13 @@
 
 // 转成PlatformIO工程创建
 #include "ChassisTask.h"
-#include "FreertosTask.h"
+#include "XboxControl.h"
 #include "Battery.h"
 #include "robot.h"
 
 void setup()
 {
-  // freertos任务创建
-  create_FreertosTasks();
+  // XboxControlTask();
   bat.startTask();
   APP.startTask();            // 开手机遥控器APP任务
   WLRobot.startTask();
